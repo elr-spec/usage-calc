@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ausgrid Energy Cost Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #0C2340;
+    --teal: #0095A9;
+    --blue: #0D9ADE;
+    --gold: #FFC844;
+    --pumpkin: #FF671D;
+    --violet: #7400B8;
+    --sand: #FFF8EF;
+    --black: #000000;
+    --white: #FFFFFF;
+    --light-bg: #F5F8FA;
+    --border: #E2E8EF;
+    --text-secondary: #5A6A7A;
+  }
+
+  body {
+    font-family: 'Figtree', sans-serif;
+    background: #F0F4F8;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+
+  .calc-wrap {
+    width: 100%;
+    max-width: 780px;
+    background: var(--white);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(12,35,64,0.10);
+  }
+
+  .calc-header {
+    background: var(--navy);
+    padding: 24px 28px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .calc-header-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--teal);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .calc-header-icon svg { width: 24px; height: 24px; fill: none; stroke: white; stroke-width: 2; }
+
+  .calc-header h1 {
+    color: var(--white);
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .calc-header p {
+    color: rgba(255,255,255,0.65);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .calc-body { padding: 24px 28px; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 12px;
+  }
+
+  .rates-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .rate-card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+
+  .rate-card.peak { border-color: #FFD6C0; background: #FFF5F0; }
+  .rate-card.offpeak { border-color: #C0E8F0; background: #F0FAFC; }
+  .rate-card.free { border-color: #C0E8C0; background: #F0FCF0; }
+
+  .rate-card label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .rate-card.peak label { color: #B84400; }
+  .rate-card.offpeak label { color: #006A7A; }
+  .rate-card.free label { color: #1A6B1A; }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-peak { background: var(--pumpkin); }
+  .dot-offpeak { background: var(--teal); }
+  .dot-free { background: #3CB371; }
+
+  .rate-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .rate-prefix {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .rate-input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    background: white;
+    outline: none;
+  }
+
+  .rate-input:focus { border-color: var(--teal); }
+  .rate-input:disabled { background: #F5F5F5; color: #888; }
+
+  .free-note {
+    font-size: 11px;
+    color: #1A6B1A;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  .usage-section { margin-bottom: 20px; }
+
+  .usage-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .total-usage-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .total-usage-input {
+    width: 90px;
+    border: 1.5px solid var(--navy);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+    text-align: right;
+    outline: none;
+  }
+
+  .total-usage-input:focus { border-color: var(--teal); }
+
+  .kwh-label { font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+
+  .split-bars { margin-bottom: 8px; }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .bar-label {
+    width: 64px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  .bar-label.peak { color: #B84400; }
+  .bar-label.offpeak { color: #006A7A; }
+  .bar-label.free { color: #1A6B1A; }
+
+  .bar-slider { flex: 1; appearance: none; height: 6px; border-radius: 3px; outline: none; cursor: pointer; }
+
+  .bar-slider.peak { accent-color: var(--pumpkin); }
+  .bar-slider.offpeak { accent-color: var(--teal); }
+  .bar-slider.free { accent-color: #3CB371; }
+
+  .bar-value {
+    width: 70px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    flex-shrink: 0;
+  }
+
+  .bar-kwh {
+    width: 56px;
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+
+  .total-bar-track {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--border);
+    overflow: hidden;
+    display: flex;
+    margin-bottom: 6px;
+  }
+
+  .total-bar-seg { height: 100%; transition: width 0.2s; }
+  .seg-peak { background: var(--pumpkin); }
+  .seg-offpeak { background: var(--teal); }
+  .seg-free { background: #3CB371; }
+
+  .total-bar-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+  }
+
+  .warning-msg {
+    background: #FFF3E0;
+    border: 1px solid #FFCC80;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #8B4A00;
+    font-weight: 600;
+    display: none;
+    margin-top: 8px;
+  }
+
+  .shift-section { margin-bottom: 20px; }
+
+  .activity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .activity-card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: border-color 0.15s;
+  }
+
+  .activity-card.shifted { border-color: #3CB371; background: #F0FCF0; }
+
+  .activity-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--sand);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+  }
+
+  .activity-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.2;
+  }
+
+  .activity-kwh {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .activity-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .shift-select {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 12px;
+    color: var(--navy);
+    background: white;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .shift-select:focus { border-color: var(--teal); }
+
+  .shift-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s;
+  }
+
+  .shift-btn.apply { background: var(--teal); color: white; }
+  .shift-btn.apply:hover { background: #007A8A; }
+  .shift-btn.undo { background: #E8F5F7; color: var(--teal); border: 1px solid var(--teal); }
+  .shift-btn.undo:hover { background: #C0E8F0; }
+
+  .shifted-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1A6B1A;
+    background: #C0F0C0;
+    border-radius: 4px;
+    padding: 2px 7px;
+    display: inline-block;
+  }
+
+  .results-panel {
+    background: var(--navy);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-top: 4px;
+  }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .result-card {
+    background: rgba(255,255,255,0.08);
+    border-radius: 9px;
+    padding: 14px 16px;
+  }
+
+  .result-card.highlight {
+    background: var(--teal);
+  }
+
+  .result-card.annual {
+    grid-column: 1 / -1;
+    background: var(--gold);
+  }
+
+  .result-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 4px;
+  }
+
+  .result-card.annual .result-label { color: rgba(12,35,64,0.65); }
+
+  .result-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+  }
+
+  .result-card.annual .result-value { color: var(--navy); font-size: 30px; }
+
+  .result-breakdown {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 4px;
+  }
+
+  .result-card.annual .result-breakdown { color: rgba(12,35,64,0.5); }
+
+  .supply-note {
+    font-size: 11px;
+    color: rgba(255,255,255,0.45);
+    text-align: center;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.12);
+  }
+
+  @media (max-width: 520px) {
+    .rates-grid { grid-template-columns: 1fr; }
+    .activity-grid { grid-template-columns: 1fr; }
+    .results-grid { grid-template-columns: 1fr; }
+    .result-card.annual { grid-column: 1; }
+    .calc-body { padding: 16px; }
+    .calc-header { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="calc-wrap">
+  <div class="calc-header">
+    <div class="calc-header-icon">
+      <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    </div>
+    <div>
+      <h1>Ausgrid Energy Cost Calculator</h1>
+      <p>Estimate your daily &amp; annual electricity bill based on your usage patterns</p>
+    </div>
+  </div>
+
+  <div class="calc-body">
+
+    <div class="section-label">Your electricity rates ($/kWh)</div>
+    <div class="rates-grid">
+      <div class="rate-card peak">
+        <label><span class="dot dot-peak"></span>Peak</label>
+        <div class="rate-input-wrap">
+          <span class="rate-prefix">$</span>
+          <input class="rate-input" type="number" id="ratePeak" value="0.6372" step="0.0001" min="0">
+        </div>
+      </div>
+      <div class="rate-card offpeak">
+        <label><span class="dot dot-offpeak"></span>Off-peak</label>
+        <div class="rate-input-wrap">
+          <span class="rate-prefix">$</span>
+          <input class="rate-input" type="number" id="rateOffpeak" value="0.2756" step="0.0001" min="0">
+        </div>
+      </div>
+      <div class="rate-card free">
+        <label><span class="dot dot-free"></span>Free</label>
+        <div class="rate-input-wrap">
+          <span class="rate-prefix">$</span>
+          <input class="rate-input" type="number" id="rateFree" value="0.00" disabled>
+        </div>
+        <div class="free-note">Always $0.00</div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="usage-section">
+      <div class="section-label" style="margin-bottom:6px;">Daily usage split</div>
+      <div class="usage-top">
+        <span style="font-size:13px;color:var(--text-secondary);">Total daily usage</span>
+        <div class="total-usage-input-wrap">
+          <input class="total-usage-input" type="number" id="totalUsage" value="10.69" step="0.01" min="0.1">
+          <span class="kwh-label">kWh</span>
+        </div>
+      </div>
+
+      <div class="split-bars">
+        <div class="bar-row">
+          <span class="bar-label peak">Peak</span>
+          <input class="bar-slider peak" type="range" id="sliderPeak" min="0" max="100" value="33">
+          <span class="bar-value" id="valPeak">33%</span>
+          <span class="bar-kwh" id="kwhPeak">3.53 kWh</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label offpeak">Off-peak</span>
+          <input class="bar-slider offpeak" type="range" id="sliderOffpeak" min="0" max="100" value="54">
+          <span class="bar-value" id="valOffpeak">54%</span>
+          <span class="bar-kwh" id="kwhOffpeak">5.77 kWh</span>
+        </div>
+        <div class="bar-row">
+          <span class="bar-label free">Free</span>
+          <input class="bar-slider free" type="range" id="sliderFree" min="0" max="100" value="13">
+          <span class="bar-value" id="valFree">13%</span>
+          <span class="bar-kwh" id="kwhFree">1.39 kWh</span>
+        </div>
+      </div>
+
+      <div class="total-bar-labels">
+        <span>0 kWh</span>
+        <span id="totalBarUsed">10.69 / 10.69 kWh allocated</span>
+      </div>
+      <div class="total-bar-track">
+        <div class="total-bar-seg seg-peak" id="segPeak" style="width:33%"></div>
+        <div class="total-bar-seg seg-offpeak" id="segOffpeak" style="width:54%"></div>
+        <div class="total-bar-seg seg-free" id="segFree" style="width:13%"></div>
+      </div>
+
+      <div class="warning-msg" id="warningMsg">⚠ Total exceeds 100% — adjust the sliders to allocate usage correctly.</div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="shift-section">
+      <div class="section-label">Shift energy-intensive activities to free hours</div>
+      <div class="activity-grid" id="activityGrid">
+      </div>
+    </div>
+
+    <div class="results-panel">
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-label">Daily energy cost</div>
+          <div class="result-value" id="resDailyCost">$0.00</div>
+          <div class="result-breakdown" id="resDailyBreak">excl. supply charge</div>
+        </div>
+        <div class="result-card highlight">
+          <div class="result-label">Daily total (incl. supply)</div>
+          <div class="result-value" id="resDailyTotal">$0.00</div>
+          <div class="result-breakdown" id="resDailyTotalBreak">Supply: $1.76/day</div>
+        </div>
+        <div class="result-card annual">
+          <div class="result-label">Estimated annual cost</div>
+          <div class="result-value" id="resAnnual">$0.00</div>
+          <div class="result-breakdown" id="resAnnualBreak">Peak 243 days · Off-peak &amp; free 122 days · Supply 365 days</div>
+        </div>
+      </div>
+      <div class="supply-note">Supply charge: $1.76/day included. Annual peak rate applies 243 days; off-peak &amp; free rates apply all 365 days.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPPLY = 1.764106;
+const PEAK_DAYS = 243;
+const ALL_DAYS = 365;
+const OFF_FREE_DAYS = ALL_DAYS;
+
+const activities = [
+  { id: 'wash',  icon: '🧺', name: 'Washing machine', detail: 'One full load', kwh: 0.9 },
+  { id: 'dish',  icon: '🍽️', name: 'Dishwasher',      detail: 'One full cycle', kwh: 0.9 },
+  { id: 'dryer', icon: '♨️', name: 'Tumble dryer',    detail: 'One full load',  kwh: 3.0 },
+  { id: 'oven',  icon: '🍳', name: 'Oven',            detail: 'One hour of use', kwh: 2.0 },
+];
+
+let shifted = {};
+
+function buildActivityGrid() {
+  const grid = document.getElementById('activityGrid');
+  grid.innerHTML = '';
+  activities.forEach(act => {
+    const isShifted = !!shifted[act.id];
+    const card = document.createElement('div');
+    card.className = 'activity-card' + (isShifted ? ' shifted' : '');
+    card.innerHTML = `
+      <div class="activity-top">
+        <div class="activity-icon">${act.icon}</div>
+        <div>
+          <div class="activity-name">${act.name}</div>
+          <div class="activity-kwh">${act.kwh} kWh · ${act.detail}</div>
+          ${isShifted ? `<div class="shifted-badge" style="margin-top:4px;">✓ Shifted from ${shifted[act.id] === 'peak' ? 'peak' : 'off-peak'} → free</div>` : ''}
+        </div>
+      </div>
+      ${!isShifted ? `
+      <div class="activity-controls">
+        <select class="shift-select" id="from_${act.id}">
+          <option value="">Move from…</option>
+          <option value="peak">Peak hours</option>
+          <option value="offpeak">Off-peak hours</option>
+        </select>
+        <button class="shift-btn apply" onclick="applyShift('${act.id}')">Shift to free</button>
+      </div>` : `
+      <div class="activity-controls">
+        <button class="shift-btn undo" onclick="undoShift('${act.id}')">↩ Undo shift</button>
+      </div>`}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function applyShift(id) {
+  const from = document.getElementById('from_' + id);
+  if (!from || !from.value) { from && (from.style.borderColor = 'red'); return; }
+  const act = activities.find(a => a.id === id);
+  shifted[id] = from.value;
+  const total = parseFloat(document.getElementById('totalUsage').value) || 10.69;
+  let pct = Math.round((act.kwh / total) * 100);
+  if (from.value === 'peak') {
+    adjustSliders('peak', 'free', pct);
+  } else {
+    adjustSliders('offpeak', 'free', pct);
+  }
+  buildActivityGrid();
+  calculate();
+}
+
+function undoShift(id) {
+  const act = activities.find(a => a.id === id);
+  const from = shifted[id];
+  const total = parseFloat(document.getElementById('totalUsage').value) || 10.69;
+  let pct = Math.round((act.kwh / total) * 100);
+  if (from === 'peak') {
+    adjustSliders('free', 'peak', pct);
+  } else {
+    adjustSliders('free', 'offpeak', pct);
+  }
+  delete shifted[id];
+  buildActivityGrid();
+  calculate();
+}
+
+function adjustSliders(fromTariff, toTariff, pct) {
+  const fromSlider = document.getElementById('slider' + cap(fromTariff));
+  const toSlider = document.getElementById('slider' + cap(toTariff));
+  let fromVal = parseInt(fromSlider.value);
+  let toVal = parseInt(toSlider.value);
+  let transfer = Math.min(pct, fromVal);
+  fromSlider.value = fromVal - transfer;
+  toSlider.value = toVal + transfer;
+  updateDisplays();
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function getSliders() {
+  return {
+    peak: parseInt(document.getElementById('sliderPeak').value),
+    offpeak: parseInt(document.getElementById('sliderOffpeak').value),
+    free: parseInt(document.getElementById('sliderFree').value),
+  };
+}
+
+function updateDisplays() {
+  const s = getSliders();
+  const total = parseFloat(document.getElementById('totalUsage').value) || 10.69;
+  const sum = s.peak + s.offpeak + s.free;
+
+  document.getElementById('valPeak').textContent = s.peak + '%';
+  document.getElementById('valOffpeak').textContent = s.offpeak + '%';
+  document.getElementById('valFree').textContent = s.free + '%';
+  document.getElementById('kwhPeak').textContent = ((total * s.peak / 100)).toFixed(2) + ' kWh';
+  document.getElementById('kwhOffpeak').textContent = ((total * s.offpeak / 100)).toFixed(2) + ' kWh';
+  document.getElementById('kwhFree').textContent = ((total * s.free / 100)).toFixed(2) + ' kWh';
+
+  const allocPct = Math.min(s.peak, 100) + '%';
+  const offPct = Math.min(s.offpeak, 100 - s.peak) + '%';
+  const frPct = Math.min(s.free, 100 - s.peak - s.offpeak) + '%';
+  document.getElementById('segPeak').style.width = (s.peak / Math.max(sum, 100) * 100) + '%';
+  document.getElementById('segOffpeak').style.width = (s.offpeak / Math.max(sum, 100) * 100) + '%';
+  document.getElementById('segFree').style.width = (s.free / Math.max(sum, 100) * 100) + '%';
+
+  const usedKwh = (total * sum / 100).toFixed(2);
+  document.getElementById('totalBarUsed').textContent = usedKwh + ' / ' + total.toFixed(2) + ' kWh allocated';
+
+  const warn = document.getElementById('warningMsg');
+  warn.style.display = sum > 100 ? 'block' : 'none';
+}
+
+function calculate() {
+  const s = getSliders();
+  const total = parseFloat(document.getElementById('totalUsage').value) || 10.69;
+  const ratePeak = parseFloat(document.getElementById('ratePeak').value) || 0;
+  const rateOff = parseFloat(document.getElementById('rateOffpeak').value) || 0;
+
+  const kwhPeak = total * s.peak / 100;
+  const kwhOff = total * s.offpeak / 100;
+  const kwhFree = total * s.free / 100;
+
+  const dailyCost = (kwhPeak * ratePeak) + (kwhOff * rateOff);
+  const dailyTotal = dailyCost + SUPPLY;
+
+  const annualPeakCost = kwhPeak * ratePeak * PEAK_DAYS;
+  const annualOffCost = kwhOff * rateOff * ALL_DAYS;
+  const annualSupply = SUPPLY * ALL_DAYS;
+  const annualTotal = annualPeakCost + annualOffCost + annualSupply;
+
+  document.getElementById('resDailyCost').textContent = '$' + dailyCost.toFixed(2);
+  document.getElementById('resDailyBreak').textContent = 'Peak: $' + (kwhPeak * ratePeak).toFixed(2) + ' · Off-peak: $' + (kwhOff * rateOff).toFixed(2);
+  document.getElementById('resDailyTotal').textContent = '$' + dailyTotal.toFixed(2);
+  document.getElementById('resDailyTotalBreak').textContent = 'Supply: $' + SUPPLY.toFixed(2) + '/day';
+  document.getElementById('resAnnual').textContent = '$' + Math.round(annualTotal).toLocaleString();
+  document.getElementById('resAnnualBreak').textContent = 'Peak (' + PEAK_DAYS + ' days): $' + Math.round(annualPeakCost).toLocaleString() + ' · Off-peak: $' + Math.round(annualOffCost).toLocaleString() + ' · Supply: $' + Math.round(annualSupply).toLocaleString();
+}
+
+function onSliderChange(changedId) {
+  updateDisplays();
+  calculate();
+}
+
+document.getElementById('sliderPeak').addEventListener('input', () => onSliderChange('peak'));
+document.getElementById('sliderOffpeak').addEventListener('input', () => onSliderChange('offpeak'));
+document.getElementById('sliderFree').addEventListener('input', () => onSliderChange('free'));
+document.getElementById('totalUsage').addEventListener('input', () => { updateDisplays(); calculate(); });
+document.getElementById('ratePeak').addEventListener('input', calculate);
+document.getElementById('rateOffpeak').addEventListener('input', calculate);
+
+buildActivityGrid();
+updateDisplays();
+calculate();
+</script>
+</body>
+</html>
